@@ -10,7 +10,8 @@ import {
   FileText, 
   LogOut,
   Home,
-  Shield
+  Shield,
+  UserCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,6 +48,7 @@ export const Sidebar = ({ isAdmin }: SidebarProps) => {
     { path: "/scanner", icon: QrCode, label: "Escanear QR" },
     { path: "/attendance", icon: Calendar, label: "Histórico" },
     { path: "/workouts", icon: Clipboard, label: "Meus Treinos" },
+    { path: "/profile", icon: UserCircle, label: "Meu Perfil" },
   ];
 
   const adminLinks = [
@@ -57,6 +59,7 @@ export const Sidebar = ({ isAdmin }: SidebarProps) => {
     { path: "/admin/blocking", icon: Shield, label: "Bloqueios" },
     { path: "/admin/reports", icon: FileText, label: "Relatórios" },
     { path: "/admin/attendance", icon: Calendar, label: "Presenças" },
+    { path: "/profile", icon: UserCircle, label: "Meu Perfil" },
   ];
 
   const links = isAdmin ? adminLinks : studentLinks;
