@@ -178,7 +178,10 @@ const Dashboard = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Gerar código QR para registro de presença
                   </p>
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Button 
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    onClick={() => navigate("/admin/qrcode")}
+                  >
                     Gerar Novo QR
                   </Button>
                 </CardContent>
@@ -192,7 +195,10 @@ const Dashboard = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Cadastrar e gerenciar fichas de treino
                   </p>
-                  <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Button 
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    onClick={() => navigate("/admin/students")}
+                  >
                     Acessar Gerenciamento
                   </Button>
                 </CardContent>
