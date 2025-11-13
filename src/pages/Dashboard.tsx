@@ -114,7 +114,10 @@ const Dashboard = () => {
 
         {/* Dashboard Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="border-border hover:border-primary transition-colors cursor-pointer">
+          <Card 
+            className="border-border hover:border-primary transition-colors cursor-pointer"
+            onClick={() => navigate("/scanner")}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
                 Registrar Presença
