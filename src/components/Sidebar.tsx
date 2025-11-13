@@ -54,6 +54,7 @@ export const Sidebar = ({ isAdmin }: SidebarProps) => {
     { path: "/admin/qrcode", icon: QrCode, label: "QR Code" },
     { path: "/admin/students", icon: Users, label: "Alunos" },
     { path: "/admin/workouts", icon: Clipboard, label: "Fichas" },
+    { path: "/admin/blocking", icon: Shield, label: "Bloqueios" },
     { path: "/admin/reports", icon: FileText, label: "Relatórios" },
     { path: "/admin/attendance", icon: Calendar, label: "Presenças" },
   ];
