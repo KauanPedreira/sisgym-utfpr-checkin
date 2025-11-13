@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QrCode, Calendar, Clipboard, Users, FileText, Shield } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { QRScannerDialog } from "@/components/QRScannerDialog";
+import { NotificationPermission } from "@/components/NotificationPermission";
 import type { User } from "@supabase/supabase-js";
 
 const DashboardNew = () => {
@@ -261,12 +262,15 @@ const DashboardNew = () => {
       {user && !isAdmin && (
         <QRScannerDialog 
           open={scannerOpen} 
-          onOpenChange={setScannerOpen}
-          userId={user.id}
-        />
+        onOpenChange={setScannerOpen}
+        userId={user.id}
+      />
       )}
+      
+      <NotificationPermission />
     </div>
   );
 };
 
+export default DashboardNew;
 export default DashboardNew;

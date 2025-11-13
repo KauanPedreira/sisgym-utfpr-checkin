@@ -2,3 +2,12 @@ project_id = "blviklqiqypvyewnwvmm"
 
 [functions.check-attendance]
 verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.notify-low-attendance]
+verify_jwt = false
+
+[functions.notify-workout-created]
+verify_jwt = false
