@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/lib/supabase-temp";
+import { supabase } from "@/integrations/supabase/client";
 import { Dumbbell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

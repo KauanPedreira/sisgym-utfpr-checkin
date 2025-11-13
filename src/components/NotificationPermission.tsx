@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bell, BellOff, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase-temp";
+import { supabase } from "@/integrations/supabase/client";
 
 export const NotificationPermission = () => {
   const { toast } = useToast();
