@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button";
 import { FileText, Download, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Label } from "@/components/ui/label";
+import {
+  generateAttendanceReport,
+  generateStudentsReport,
+  generateMonthlyReport,
+  generateLowFrequencyReport,
+} from "@/lib/pdfGenerator";
 
 const AdminReports = () => {
   const [stats, setStats] = useState({
@@ -15,6 +21,7 @@ const AdminReports = () => {
     activeStudents: 0,
     blockedStudents: 0,
   });
+  const [loading, setLoading] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -81,11 +88,115 @@ const AdminReports = () => {
     }
   };
 
-  const handleGenerateReport = () => {
-    toast({
-      title: "Em desenvolvimento",
-      description: "A geração de relatórios PDF será implementada em breve.",
-    });
+  const handleGenerateReport = async (type: string) => {
+    setLoading(type);
+    try {
+      if (type === "attendances") {
+        const { data } = await supabase
+          .from("presencas")
+          .select(`
+            id,
+            data_hora,
+            profiles:aluno_user_id (nome, cpf)
+          `)
+          .order("data_hora", { ascending: false });
+
+        if (data) {
+          const transformedData = data.map((item: any) => ({
+            ...item,
+            profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+          }));
+          await generateAttendanceReport(transformedData);
+        }
+      } else if (type === "students") {
+        const { data } = await supabase
+          .from("alunos")
+          .select(`
+            *,
+            profiles!alunos_user_id_fkey (nome, cpf, telefone)
+          `);
+
+        if (data) {
+          const transformedData = data.map((item: any) => ({
+            ...item,
+            profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+          }));
+          await generateStudentsReport(transformedData);
+        }
+      } else if (type === "monthly") {
+        const [studentsRes, attendancesRes] = await Promise.all([
+          supabase
+            .from("alunos")
+            .select(`
+              *,
+              profiles!alunos_user_id_fkey (nome, cpf, telefone)
+            `),
+          supabase
+            .from("presencas")
+            .select(`
+              id,
+              data_hora,
+              profiles:aluno_user_id (nome, cpf)
+            `)
+            .order("data_hora", { ascending: false }),
+        ]);
+
+        if (studentsRes.data && attendancesRes.data) {
+          const transformedStudents = studentsRes.data.map((item: any) => ({
+            ...item,
+            profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+          }));
+          const transformedAttendances = attendancesRes.data.map((item: any) => ({
+            ...item,
+            profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+          }));
+          await generateMonthlyReport(transformedStudents, transformedAttendances);
+        }
+      } else if (type === "lowFrequency") {
+        const [studentsRes, attendancesRes] = await Promise.all([
+          supabase
+            .from("alunos")
+            .select(`
+              *,
+              profiles!alunos_user_id_fkey (nome, cpf, telefone)
+            `),
+          supabase
+            .from("presencas")
+            .select(`
+              id,
+              data_hora,
+              profiles:aluno_user_id (nome, cpf)
+            `)
+            .order("data_hora", { ascending: false }),
+        ]);
+
+        if (studentsRes.data && attendancesRes.data) {
+          const transformedStudents = studentsRes.data.map((item: any) => ({
+            ...item,
+            profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+          }));
+          const transformedAttendances = attendancesRes.data.map((item: any) => ({
+            ...item,
+            profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+          }));
+          await generateLowFrequencyReport(transformedStudents, transformedAttendances);
+        }
+      }
+
+      toast({
+        title: "Relatório gerado!",
+        description: "O arquivo PDF foi baixado com sucesso.",
+      });
+    } catch (error: any) {
+      console.error("Error generating report:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar o relatório.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(null);
+    }
   };
 
   return (
@@ -165,9 +276,13 @@ const AdminReports = () => {
                   <p className="text-sm text-muted-foreground">
                     Gere um relatório completo de todas as presenças registradas
                   </p>
-                  <Button onClick={handleGenerateReport} className="w-full">
+                  <Button 
+                    onClick={() => handleGenerateReport("attendances")} 
+                    className="w-full"
+                    disabled={loading === "attendances"}
+                  >
                     <Download className="mr-2 h-4 w-4" />
-                    Gerar PDF
+                    {loading === "attendances" ? "Gerando..." : "Gerar PDF"}
                   </Button>
                 </div>
 
@@ -176,9 +291,13 @@ const AdminReports = () => {
                   <p className="text-sm text-muted-foreground">
                     Lista completa de alunos com estatísticas de frequência
                   </p>
-                  <Button onClick={handleGenerateReport} className="w-full">
+                  <Button 
+                    onClick={() => handleGenerateReport("students")} 
+                    className="w-full"
+                    disabled={loading === "students"}
+                  >
                     <Download className="mr-2 h-4 w-4" />
-                    Gerar PDF
+                    {loading === "students" ? "Gerando..." : "Gerar PDF"}
                   </Button>
                 </div>
 
@@ -187,9 +306,13 @@ const AdminReports = () => {
                   <p className="text-sm text-muted-foreground">
                     Estatísticas consolidadas do mês atual
                   </p>
-                  <Button onClick={handleGenerateReport} className="w-full">
+                  <Button 
+                    onClick={() => handleGenerateReport("monthly")} 
+                    className="w-full"
+                    disabled={loading === "monthly"}
+                  >
                     <Download className="mr-2 h-4 w-4" />
-                    Gerar PDF
+                    {loading === "monthly" ? "Gerando..." : "Gerar PDF"}
                   </Button>
                 </div>
 
@@ -198,17 +321,22 @@ const AdminReports = () => {
                   <p className="text-sm text-muted-foreground">
                     Lista de alunos com frequência abaixo de 70%
                   </p>
-                  <Button onClick={handleGenerateReport} className="w-full" variant="destructive">
+                  <Button 
+                    onClick={() => handleGenerateReport("lowFrequency")} 
+                    className="w-full" 
+                    variant="destructive"
+                    disabled={loading === "lowFrequency"}
+                  >
                     <Calendar className="mr-2 h-4 w-4" />
-                    Gerar PDF
+                    {loading === "lowFrequency" ? "Gerando..." : "Gerar PDF"}
                   </Button>
                 </div>
               </div>
 
-              <div className="bg-muted/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground">
-                  💡 <strong>Dica:</strong> Os relatórios em PDF serão implementados em breve.
-                  Por enquanto, você pode visualizar os dados nas outras páginas do sistema.
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                <p className="text-sm">
+                  ✓ <strong>Relatórios Implementados:</strong> Todos os relatórios agora geram PDFs completos
+                  com estatísticas detalhadas, tabelas formatadas e design profissional com as cores da UTFPR.
                 </p>
               </div>
             </CardContent>
