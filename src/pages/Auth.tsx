@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Dumbbell } from "lucide-react";
 
@@ -15,6 +16,9 @@ const Auth = () => {
   const [cpf, setCpf] = useState("");
   const [nome, setNome] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [ra, setRa] = useState("");
+  const [tipoVinculo, setTipoVinculo] = useState("aluno");
+  const [frequenciaEsperada, setFrequenciaEsperada] = useState("3");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -67,7 +71,7 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -81,6 +85,23 @@ const Auth = () => {
       });
 
       if (error) throw error;
+
+      // Create aluno entry after signup
+      if (data.user) {
+        const { error: alunoError } = await supabase
+          .from("alunos")
+          .insert({
+            user_id: data.user.id,
+            ra: ra || null,
+            tipo_vinculo: tipoVinculo,
+            frequencia_esperada: parseInt(frequenciaEsperada),
+            status: "ativo",
+          });
+
+        if (alunoError) {
+          console.error("Error creating aluno:", alunoError);
+        }
+      }
 
       toast({
         title: "Cadastro realizado!",
@@ -161,6 +182,47 @@ const Auth = () => {
                       onChange={(e) => setTelefone(e.target.value.replace(/\D/g, "").slice(0, 11))}
                       required
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tipoVinculo">Tipo de Vínculo</Label>
+                    <Select value={tipoVinculo} onValueChange={setTipoVinculo}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione seu vínculo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="aluno">Aluno</SelectItem>
+                        <SelectItem value="servidor">Servidor</SelectItem>
+                        <SelectItem value="externo">Terceiro/Externo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {tipoVinculo === "aluno" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="ra">RA (Registro Acadêmico)</Label>
+                      <Input
+                        id="ra"
+                        placeholder="Digite seu RA"
+                        value={ra}
+                        onChange={(e) => setRa(e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="frequenciaEsperada">Quantos dias por semana vai treinar?</Label>
+                    <Select value={frequenciaEsperada} onValueChange={setFrequenciaEsperada}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 dia por semana</SelectItem>
+                        <SelectItem value="2">2 dias por semana</SelectItem>
+                        <SelectItem value="3">3 dias por semana</SelectItem>
+                        <SelectItem value="4">4 dias por semana</SelectItem>
+                        <SelectItem value="5">5 dias por semana</SelectItem>
+                        <SelectItem value="6">6 dias por semana</SelectItem>
+                        <SelectItem value="7">Todos os dias</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </>
               )}
