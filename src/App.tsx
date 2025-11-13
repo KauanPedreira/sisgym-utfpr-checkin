@@ -15,6 +15,7 @@ import AdminAttendance from "./pages/AdminAttendance";
 import AdminWorkouts from "./pages/AdminWorkouts";
 import AdminReports from "./pages/AdminReports";
 import AdminBlocking from "./pages/AdminBlocking";
+import InstallPWA from "./pages/InstallPWA";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/scanner" element={<Scanner />} />
           <Route path="/attendance" element={<AttendanceHistory />} />
           <Route path="/workouts" element={<StudentWorkouts />} />
+          <Route path="/install" element={<InstallPWA />} />
           <Route path="/admin/students" element={<AdminStudents />} />
           <Route path="/admin/qrcode" element={<AdminQRCode />} />
           <Route path="/admin/attendance" element={<AdminAttendance />} />
