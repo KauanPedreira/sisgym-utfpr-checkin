@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Sidebar } from "@/components/Sidebar";
+import { AppSidebar } from "@/components/Sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clipboard, Plus, Pencil, Trash2, Dumbbell } from "lucide-react";
@@ -168,11 +169,15 @@ const AdminWorkouts = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar isAdmin={true} />
-      
-      <main className="flex-1 overflow-auto">
-        <div className="container mx-auto px-6 py-8">
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background">
+        <AppSidebar isAdmin={true} />
+        
+        <main className="flex-1 overflow-auto">
+          <div className="sticky top-0 z-10 flex h-14 items-center border-b border-border bg-background px-4">
+            <SidebarTrigger />
+          </div>
+          <div className="container mx-auto px-6 py-8">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-2">
               Gerenciar Fichas de Treino
@@ -350,6 +355,7 @@ const AdminWorkouts = () => {
         </div>
       </main>
     </div>
+    </SidebarProvider>
   );
 };
 

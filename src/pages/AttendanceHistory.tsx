@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, TrendingUp, AlertCircle } from "lucide-react";
-import { Sidebar } from "@/components/Sidebar";
+import { AppSidebar } from "@/components/Sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 
 interface Attendance {
@@ -105,21 +106,27 @@ const AttendanceHistory = () => {
 
   if (loading) {
     return (
-      <div className="flex h-screen">
-        <Sidebar isAdmin={false} />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-muted-foreground">Carregando...</p>
+      <SidebarProvider>
+        <div className="flex h-screen w-full">
+          <AppSidebar isAdmin={false} />
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-muted-foreground">Carregando...</p>
+          </div>
         </div>
-      </div>
+      </SidebarProvider>
     );
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar isAdmin={false} />
-      
-      <main className="flex-1 overflow-auto">
-        <div className="container mx-auto px-6 py-8">
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background">
+        <AppSidebar isAdmin={false} />
+        
+        <main className="flex-1 overflow-auto">
+          <div className="sticky top-0 z-10 flex h-14 items-center border-b border-border bg-background px-4">
+            <SidebarTrigger />
+          </div>
+          <div className="container mx-auto px-6 py-8">
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-2">
               Histórico de Presenças
@@ -229,6 +236,7 @@ const AttendanceHistory = () => {
         </div>
       </main>
     </div>
+    </SidebarProvider>
   );
 };
 
