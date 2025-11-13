@@ -261,7 +261,12 @@ const DashboardNew = () => {
       {/* QR Scanner Dialog */}
       {user && !isAdmin && (
         <QRScannerDialog 
-          open={scannerOpen} 
+          open={scannerOpen}
+          onOpenChange={setScannerOpen}
+          userId={user.id}
+        />
+      )}
+      
       <NotificationPermission />
     </div>
   );
