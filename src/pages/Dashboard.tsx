@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QrCode, Calendar, Clipboard, Users, FileText, Shield } from "lucide-react";
-import { Sidebar } from "@/components/Sidebar";
+import { AppSidebar } from "@/components/Sidebar";
 import { QRScannerDialog } from "@/components/QRScannerDialog";
 import { NotificationPermission } from "@/components/NotificationPermission";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import type { User } from "@supabase/supabase-js";
 
 const DashboardNew = () => {
@@ -83,10 +84,14 @@ const DashboardNew = () => {
   const isAdmin = userRole === "admin";
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar isAdmin={isAdmin} />
-      
-      <main className="flex-1 overflow-auto">
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background">
+        <AppSidebar isAdmin={isAdmin} />
+        
+        <main className="flex-1 overflow-auto">
+          <div className="sticky top-0 z-10 flex h-14 items-center border-b border-border bg-background px-4">
+            <SidebarTrigger />
+          </div>
         <div className="container mx-auto px-6 py-8">
           {/* Welcome Section */}
           <div className="mb-8">
@@ -269,6 +274,7 @@ const DashboardNew = () => {
       
       <NotificationPermission />
     </div>
+    </SidebarProvider>
   );
 };
 

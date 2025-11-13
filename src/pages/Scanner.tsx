@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Sidebar } from "@/components/Sidebar";
+import { AppSidebar } from "@/components/Sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { QRScannerDialog } from "@/components/QRScannerDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,11 +27,15 @@ const Scanner = () => {
   }, [navigate]);
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar isAdmin={false} />
-      
-      <main className="flex-1 overflow-auto">
-        <div className="container mx-auto px-6 py-8">
+    <SidebarProvider>
+      <div className="flex h-screen w-full bg-background">
+        <AppSidebar isAdmin={false} />
+        
+        <main className="flex-1 overflow-auto">
+          <div className="sticky top-0 z-10 flex h-14 items-center border-b border-border bg-background px-4">
+            <SidebarTrigger />
+          </div>
+          <div className="container mx-auto px-6 py-8">
           <div className="max-w-2xl mx-auto">
             <Card>
               <CardHeader>
@@ -76,6 +81,7 @@ const Scanner = () => {
         />
       )}
     </div>
+    </SidebarProvider>
   );
 };
 

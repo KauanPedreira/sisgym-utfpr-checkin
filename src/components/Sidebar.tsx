@@ -1,6 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { 
   Dumbbell, 
   QrCode, 
@@ -14,15 +13,28 @@ import {
   UserCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@/components/ui/sidebar";
 
-interface SidebarProps {
+interface AppSidebarProps {
   isAdmin: boolean;
 }
 
-export const Sidebar = ({ isAdmin }: SidebarProps) => {
+export const AppSidebar = ({ isAdmin }: AppSidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { open } = useSidebar();
 
   const handleLogout = async () => {
     try {
@@ -65,55 +77,62 @@ export const Sidebar = ({ isAdmin }: SidebarProps) => {
   const links = isAdmin ? adminLinks : studentLinks;
 
   return (
-    <aside className="w-64 bg-card border-r border-border flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-border">
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="border-b border-border p-4">
         <div className="flex items-center gap-3">
-          <Dumbbell className="h-8 w-8 text-primary" />
-          <div>
-            <h1 className="text-xl font-bold text-foreground">SisGym</h1>
-            <p className="text-xs text-muted-foreground">UTFPR</p>
-          </div>
+          <Dumbbell className="h-8 w-8 text-primary shrink-0" />
+          {open && (
+            <div>
+              <h1 className="text-xl font-bold text-foreground">SisGym</h1>
+              <p className="text-xs text-muted-foreground">UTFPR</p>
+            </div>
+          )}
         </div>
-        {isAdmin && (
+        {isAdmin && open && (
           <div className="mt-3 flex items-center gap-2 text-xs text-primary">
             <Shield className="h-3 w-3" />
             <span>Administrador</span>
           </div>
         )}
-      </div>
+      </SidebarHeader>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
-        {links.map((link) => {
-          const Icon = link.icon;
-          return (
-            <Link key={link.path} to={link.path}>
-              <Button
-                variant={isActive(link.path) ? "secondary" : "ghost"}
-                className={`w-full justify-start gap-3 ${
-                  isActive(link.path) ? "bg-primary/10 text-primary" : ""
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {link.label}
-              </Button>
-            </Link>
-          );
-        })}
-      </nav>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {links.map((link) => {
+                const Icon = link.icon;
+                const active = isActive(link.path);
+                return (
+                  <SidebarMenuItem key={link.path}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      tooltip={link.label}
+                    >
+                      <Link to={link.path} className="flex items-center gap-3">
+                        <Icon className="h-4 w-4" />
+                        <span>{link.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-      {/* Logout */}
-      <div className="p-4 border-t border-border">
-        <Button
-          onClick={handleLogout}
-          variant="outline"
-          className="w-full gap-2"
-        >
-          <LogOut className="h-4 w-4" />
-          Sair
-        </Button>
-      </div>
-    </aside>
+      <SidebarFooter className="border-t border-border p-4">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout} tooltip="Sair">
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+    </Sidebar>
   );
 };
