@@ -96,7 +96,7 @@ const Auth = () => {
             tipo_vinculo: tipoVinculo,
             frequencia_esperada: parseInt(frequenciaEsperada),
             status: "ativo",
-          });
+          } as any);
 
         if (alunoError) {
           console.error("Error creating aluno:", alunoError);

@@ -79,7 +79,7 @@ const AdminStudents = () => {
 
       if (error) throw error;
 
-      setStudents(data || []);
+      setStudents(data as any || []);
     } catch (error: any) {
       console.error("Error:", error);
       toast({

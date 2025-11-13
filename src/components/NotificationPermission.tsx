@@ -76,7 +76,7 @@ export const NotificationPermission = () => {
             user_id: user.id,
             subscription: subscription.toJSON(),
             updated_at: new Date().toISOString(),
-          }, {
+          } as any, {
             onConflict: "user_id",
           });
 
