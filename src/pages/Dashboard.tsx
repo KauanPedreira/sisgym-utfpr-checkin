@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase-temp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dumbbell, LogOut, QrCode, Calendar, Clipboard } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { QRScannerDialog } from "@/components/QRScannerDialog";
 import type { User } from "@supabase/supabase-js";
 
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -116,7 +118,7 @@ const Dashboard = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card 
             className="border-border hover:border-primary transition-colors cursor-pointer"
-            onClick={() => navigate("/scanner")}
+            onClick={() => setScannerOpen(true)}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">
@@ -199,6 +201,15 @@ const Dashboard = () => {
           </div>
         )}
       </main>
+
+      {/* QR Scanner Dialog */}
+      {user && (
+        <QRScannerDialog 
+          open={scannerOpen} 
+          onOpenChange={setScannerOpen}
+          userId={user.id}
+        />
+      )}
     </div>
   );
 };
