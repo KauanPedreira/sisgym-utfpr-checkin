@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Sidebar } from "@/components/Sidebar";
 import { QRScannerDialog } from "@/components/QRScannerDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,17 +13,17 @@ const Scanner = () => {
   const navigate = useNavigate();
 
   // Get user ID on mount
-  useState(() => {
-    import("@/lib/supabase-temp").then(({ supabase }) => {
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        if (user) {
-          setUserId(user.id);
-        } else {
-          navigate("/auth");
-        }
-      });
-    });
-  });
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+      } else {
+        navigate("/auth");
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   return (
     <div className="flex h-screen bg-background">
