@@ -262,11 +262,6 @@ const DashboardNew = () => {
       {user && !isAdmin && (
         <QRScannerDialog 
           open={scannerOpen} 
-        onOpenChange={setScannerOpen}
-        userId={user.id}
-      />
-      )}
-      
       <NotificationPermission />
     </div>
   );
