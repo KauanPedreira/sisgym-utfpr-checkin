@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { User, Upload, Save, Loader2 } from "lucide-react";
+import { User, Upload, Save, Loader2, Lock, Eye, EyeOff } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -16,7 +16,21 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordErrors, setPasswordErrors] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [profile, setProfile] = useState({
     nome: "",
     cpf: "",
@@ -193,6 +207,123 @@ const Profile = () => {
       .slice(0, 2);
   };
 
+  const validatePassword = (password: string): string[] => {
+    const errors: string[] = [];
+    
+    if (password.length < 8) {
+      errors.push("A senha deve ter no mínimo 8 caracteres");
+    }
+    if (!/[A-Z]/.test(password)) {
+      errors.push("Deve conter pelo menos uma letra maiúscula");
+    }
+    if (!/[a-z]/.test(password)) {
+      errors.push("Deve conter pelo menos uma letra minúscula");
+    }
+    if (!/[0-9]/.test(password)) {
+      errors.push("Deve conter pelo menos um número");
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      errors.push("Deve conter pelo menos um caractere especial");
+    }
+    
+    return errors;
+  };
+
+  const handlePasswordChange = async () => {
+    try {
+      // Reset errors
+      setPasswordErrors({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      // Validate fields
+      let hasErrors = false;
+      const newErrors = {
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      };
+
+      if (!passwordForm.currentPassword) {
+        newErrors.currentPassword = "A senha atual é obrigatória";
+        hasErrors = true;
+      }
+
+      if (!passwordForm.newPassword) {
+        newErrors.newPassword = "A nova senha é obrigatória";
+        hasErrors = true;
+      } else {
+        const validationErrors = validatePassword(passwordForm.newPassword);
+        if (validationErrors.length > 0) {
+          newErrors.newPassword = validationErrors.join(". ");
+          hasErrors = true;
+        }
+      }
+
+      if (!passwordForm.confirmPassword) {
+        newErrors.confirmPassword = "A confirmação é obrigatória";
+        hasErrors = true;
+      } else if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+        newErrors.confirmPassword = "As senhas não coincidem";
+        hasErrors = true;
+      }
+
+      if (hasErrors) {
+        setPasswordErrors(newErrors);
+        return;
+      }
+
+      setChangingPassword(true);
+
+      // First verify current password by trying to sign in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error("Usuário não encontrado");
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: passwordForm.currentPassword,
+      });
+
+      if (signInError) {
+        setPasswordErrors({
+          ...newErrors,
+          currentPassword: "Senha atual incorreta",
+        });
+        return;
+      }
+
+      // Update password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: passwordForm.newPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      // Clear form
+      setPasswordForm({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+
+      toast({
+        title: "Senha atualizada",
+        description: "Sua senha foi alterada com sucesso",
+      });
+    } catch (error: any) {
+      console.error("Error changing password:", error);
+      toast({
+        title: "Erro ao alterar senha",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -323,6 +454,135 @@ const Profile = () => {
                     <>
                       <Save className="mr-2 h-4 w-4" />
                       Salvar Alterações
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Password Change */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Alterar Senha
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword">Senha Atual</Label>
+                  <div className="relative">
+                    <Input
+                      id="currentPassword"
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={passwordForm.currentPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                      placeholder="Digite sua senha atual"
+                      className={passwordErrors.currentPassword ? "border-destructive" : ""}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    >
+                      {showCurrentPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                  {passwordErrors.currentPassword && (
+                    <p className="text-xs text-destructive">{passwordErrors.currentPassword}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">Nova Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="newPassword"
+                      type={showNewPassword ? "text" : "password"}
+                      value={passwordForm.newPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                      placeholder="Digite sua nova senha"
+                      className={passwordErrors.newPassword ? "border-destructive" : ""}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                  {passwordErrors.newPassword && (
+                    <p className="text-xs text-destructive">{passwordErrors.newPassword}</p>
+                  )}
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p>A senha deve conter:</p>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      <li>No mínimo 8 caracteres</li>
+                      <li>Letras maiúsculas e minúsculas</li>
+                      <li>Pelo menos um número</li>
+                      <li>Pelo menos um caractere especial (!@#$%^&*)</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={passwordForm.confirmPassword}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                      placeholder="Digite novamente a nova senha"
+                      className={passwordErrors.confirmPassword ? "border-destructive" : ""}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
+                  {passwordErrors.confirmPassword && (
+                    <p className="text-xs text-destructive">{passwordErrors.confirmPassword}</p>
+                  )}
+                </div>
+
+                <Button
+                  onClick={handlePasswordChange}
+                  disabled={changingPassword}
+                  className="w-full"
+                  variant="default"
+                >
+                  {changingPassword ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Alterando...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="mr-2 h-4 w-4" />
+                      Alterar Senha
                     </>
                   )}
                 </Button>
