@@ -273,4 +273,3 @@ const DashboardNew = () => {
 };
 
 export default DashboardNew;
-export default DashboardNew;
