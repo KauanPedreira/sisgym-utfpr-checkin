@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Scanner from "./pages/Scanner";
 import AttendanceHistory from "./pages/AttendanceHistory";
+import StudentWorkouts from "./pages/StudentWorkouts";
 import AdminStudents from "./pages/AdminStudents";
 import AdminQRCode from "./pages/AdminQRCode";
 import AdminAttendance from "./pages/AdminAttendance";
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/scanner" element={<Scanner />} />
           <Route path="/attendance" element={<AttendanceHistory />} />
+          <Route path="/workouts" element={<StudentWorkouts />} />
           <Route path="/admin/students" element={<AdminStudents />} />
           <Route path="/admin/qrcode" element={<AdminQRCode />} />
           <Route path="/admin/attendance" element={<AdminAttendance />} />
