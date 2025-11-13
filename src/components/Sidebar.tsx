@@ -46,7 +46,7 @@ export const Sidebar = ({ isAdmin }: SidebarProps) => {
     { path: "/dashboard", icon: Home, label: "Início" },
     { path: "/scanner", icon: QrCode, label: "Escanear QR" },
     { path: "/attendance", icon: Calendar, label: "Histórico" },
-    { path: "/workout", icon: Clipboard, label: "Minha Ficha" },
+    { path: "/workouts", icon: Clipboard, label: "Meus Treinos" },
   ];
 
   const adminLinks = [
