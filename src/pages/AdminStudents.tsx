@@ -35,12 +35,85 @@ const AdminStudents = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     checkAdminAndFetchStudents();
   }, []);
+
+  // Set up realtime subscription for students
+  useEffect(() => {
+    const channel = supabase
+      .channel('students-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'alunos'
+        },
+        async (payload) => {
+          console.log('Student data changed:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            // Fetch the complete new student record with profile info
+            const { data, error } = await supabase
+              .from('alunos')
+              .select(`
+                *,
+                profiles:user_id (nome, cpf, telefone)
+              `)
+              .eq('id', payload.new.id)
+              .single();
+
+            if (!error && data) {
+              setStudents(prev => [data as any, ...prev]);
+              toast({
+                title: "Novo aluno cadastrado!",
+                description: `${(data as any).profiles?.nome || 'Aluno'} foi adicionado ao sistema.`,
+              });
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            // Update the existing student in the list
+            const { data, error } = await supabase
+              .from('alunos')
+              .select(`
+                *,
+                profiles:user_id (nome, cpf, telefone)
+              `)
+              .eq('id', payload.new.id)
+              .single();
+
+            if (!error && data) {
+              setStudents(prev => 
+                prev.map(student => 
+                  student.id === (data as any).id ? data as any : student
+                )
+              );
+            }
+          } else if (payload.eventType === 'DELETE') {
+            // Remove the deleted student from the list
+            setStudents(prev => prev.filter(student => student.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setIsRealtimeConnected(true);
+          console.log('Students realtime connected');
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          setIsRealtimeConnected(false);
+          console.log('Students realtime disconnected');
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+      setIsRealtimeConnected(false);
+    };
+  }, [toast]);
 
   const checkAdminAndFetchStudents = async () => {
     try {
@@ -138,11 +211,17 @@ const AdminStudents = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Gerenciar Alunos</h1>
-            <p className="text-sm text-muted-foreground">
-              Visualize e gerencie todos os alunos cadastrados
-            </p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Gerenciar Alunos</h1>
+              <p className="text-sm text-muted-foreground">
+                Visualize e gerencie todos os alunos cadastrados
+              </p>
+            </div>
+            <Badge variant={isRealtimeConnected ? "default" : "secondary"} className="h-6">
+              <span className={`mr-1.5 h-2 w-2 rounded-full ${isRealtimeConnected ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
+              {isRealtimeConnected ? 'Tempo Real Ativo' : 'Carregando...'}
+            </Badge>
           </div>
         </div>
       </header>
