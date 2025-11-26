@@ -12,6 +12,7 @@ import StudentWorkouts from "./pages/StudentWorkouts";
 import AdminStudents from "./pages/AdminStudents";
 import AdminQRCode from "./pages/AdminQRCode";
 import AdminAttendance from "./pages/AdminAttendance";
+import AdminAttendanceRecords from "./pages/AdminAttendanceRecords";
 import AdminWorkouts from "./pages/AdminWorkouts";
 import AdminReports from "./pages/AdminReports";
 import AdminBlocking from "./pages/AdminBlocking";
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/admin/students" element={<AdminStudents />} />
           <Route path="/admin/qrcode" element={<AdminQRCode />} />
           <Route path="/admin/attendance" element={<AdminAttendance />} />
+          <Route path="/admin/attendance-records" element={<AdminAttendanceRecords />} />
           <Route path="/admin/workouts" element={<AdminWorkouts />} />
           <Route path="/admin/reports" element={<AdminReports />} />
           <Route path="/admin/blocking" element={<AdminBlocking />} />
