@@ -33,14 +33,42 @@ export const QRScannerDialog = ({ open, onOpenChange, userId }: QRScannerDialogP
 
   const startScanner = async () => {
     try {
+      // Wait a bit to ensure the div is mounted
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Check if element exists
+      const element = document.getElementById("qr-reader-dialog");
+      if (!element) {
+        throw new Error("Scanner element not found");
+      }
+
+      // Clear any existing scanner instance
+      if (scannerRef.current) {
+        try {
+          await scannerRef.current.clear();
+        } catch (e) {
+          console.log("Error clearing previous scanner:", e);
+        }
+      }
+
       const scanner = new Html5Qrcode("qr-reader-dialog");
       scannerRef.current = scanner;
 
+      // Try to get camera list first
+      const cameras = await Html5Qrcode.getCameras();
+      if (!cameras || cameras.length === 0) {
+        throw new Error("Nenhuma câmera encontrada");
+      }
+
+      // Prefer back camera on mobile
+      const cameraId = cameras.length > 1 ? cameras[cameras.length - 1].id : cameras[0].id;
+
       await scanner.start(
-        { facingMode: "environment" },
+        cameraId,
         {
           fps: 10,
           qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0,
         },
         onScanSuccess,
         () => {
@@ -48,12 +76,14 @@ export const QRScannerDialog = ({ open, onOpenChange, userId }: QRScannerDialogP
         }
       );
       setScanning(true);
+      setError(null);
     } catch (err: any) {
       console.error("Error starting scanner:", err);
-      setError("Não foi possível acessar a câmera");
+      const errorMessage = err.message || "Não foi possível acessar a câmera";
+      setError(errorMessage);
       toast({
         title: "Erro ao acessar câmera",
-        description: "Verifique se você concedeu permissão para usar a câmera.",
+        description: "Verifique se você concedeu permissão para usar a câmera e tente novamente.",
         variant: "destructive",
       });
     }
@@ -62,12 +92,19 @@ export const QRScannerDialog = ({ open, onOpenChange, userId }: QRScannerDialogP
   const stopScanner = async () => {
     if (scannerRef.current) {
       try {
-        await scannerRef.current.stop();
-        scannerRef.current.clear();
+        const currentScanner = scannerRef.current;
         scannerRef.current = null;
+        
+        if (currentScanner.isScanning) {
+          await currentScanner.stop();
+        }
+        await currentScanner.clear();
         setScanning(false);
       } catch (err) {
         console.error("Error stopping scanner:", err);
+        // Force reset state even if stop fails
+        scannerRef.current = null;
+        setScanning(false);
       }
     }
   };
