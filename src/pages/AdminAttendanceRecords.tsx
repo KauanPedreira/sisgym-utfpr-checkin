@@ -42,6 +42,7 @@ const AdminAttendanceRecords = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -52,6 +53,64 @@ const AdminAttendanceRecords = () => {
   useEffect(() => {
     applyFilters();
   }, [searchTerm, startDate, endDate, records]);
+
+  // Set up realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('attendance-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'presencas'
+        },
+        async (payload) => {
+          console.log('New attendance registered:', payload);
+          
+          // Fetch the complete record with student info
+          const { data, error } = await supabase
+            .from('presencas')
+            .select(`
+              *,
+              profiles:aluno_user_id (nome, cpf),
+              alunos:aluno_user_id (ra, status)
+            `)
+            .eq('id', payload.new.id)
+            .single();
+
+          if (!error && data) {
+            const transformedData = {
+              ...data,
+              profiles: Array.isArray(data.profiles) ? data.profiles[0] : data.profiles,
+              alunos: Array.isArray(data.alunos) ? data.alunos[0] : data.alunos,
+            };
+
+            // Add the new record to the top of the list
+            setRecords(prev => [transformedData, ...prev]);
+            
+            toast({
+              title: "Nova presença registrada!",
+              description: `${transformedData.profiles?.nome || 'Aluno'} registrou presença.`,
+            });
+          }
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setIsRealtimeConnected(true);
+          console.log('Realtime connected');
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          setIsRealtimeConnected(false);
+          console.log('Realtime disconnected');
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+      setIsRealtimeConnected(false);
+    };
+  }, [toast]);
 
   const checkAdminAndFetchRecords = async () => {
     try {
@@ -218,9 +277,15 @@ const AdminAttendanceRecords = () => {
           <div className="container mx-auto px-6 py-8">
             <div className="mb-8 flex items-center justify-between">
               <div>
-                <h2 className="text-3xl font-bold text-foreground mb-2">
-                  Registros de Presença
-                </h2>
+                <div className="flex items-center gap-3 mb-2">
+                  <h2 className="text-3xl font-bold text-foreground">
+                    Registros de Presença
+                  </h2>
+                  <Badge variant={isRealtimeConnected ? "default" : "secondary"} className="h-6">
+                    <span className={`mr-1.5 h-2 w-2 rounded-full ${isRealtimeConnected ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
+                    {isRealtimeConnected ? 'Tempo Real Ativo' : 'Carregando...'}
+                  </Badge>
+                </div>
                 <p className="text-muted-foreground">
                   Visualize e gerencie todos os registros de presença
                 </p>
