@@ -63,7 +63,7 @@ const AdminStudents = () => {
               .from('alunos')
               .select(`
                 *,
-                profiles:user_id (nome, cpf, telefone)
+                profiles!alunos_user_id_fkey(nome, cpf, telefone)
               `)
               .eq('id', payload.new.id)
               .single();
@@ -81,7 +81,7 @@ const AdminStudents = () => {
               .from('alunos')
               .select(`
                 *,
-                profiles:user_id (nome, cpf, telefone)
+                profiles!alunos_user_id_fkey(nome, cpf, telefone)
               `)
               .eq('id', payload.new.id)
               .single();
@@ -146,7 +146,7 @@ const AdminStudents = () => {
         .from("alunos")
         .select(`
           *,
-          profiles:user_id (nome, cpf, telefone)
+          profiles!alunos_user_id_fkey(nome, cpf, telefone)
         `)
         .order("created_at", { ascending: false });
 
