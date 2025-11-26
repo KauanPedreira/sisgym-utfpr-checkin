@@ -318,9 +318,10 @@ const AdminStudents = () => {
                             <div className="flex items-center gap-2">
                               <Input
                                 value={editRAValue}
-                                onChange={(e) => setEditRAValue(e.target.value)}
+                                onChange={(e) => setEditRAValue(e.target.value.slice(0, 8))}
                                 className="w-32"
-                                placeholder="RA"
+                                placeholder="RA (máx. 8)"
+                                maxLength={8}
                                 autoFocus
                               />
                               <Button

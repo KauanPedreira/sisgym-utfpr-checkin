@@ -204,15 +204,19 @@ const Auth = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  {tipoVinculo === "aluno" && (
+                   {tipoVinculo === "aluno" && (
                     <div className="space-y-2">
                       <Label htmlFor="ra">RA (Registro Acadêmico)</Label>
                       <Input
                         id="ra"
-                        placeholder="Digite seu RA"
+                        placeholder="Digite seu RA (máx. 8 caracteres)"
                         value={ra}
-                        onChange={(e) => setRa(e.target.value)}
+                        onChange={(e) => setRa(e.target.value.slice(0, 8))}
+                        maxLength={8}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        {ra.length}/8 caracteres
+                      </p>
                     </div>
                   )}
                   <div className="space-y-2">
