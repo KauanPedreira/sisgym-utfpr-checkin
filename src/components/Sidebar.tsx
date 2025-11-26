@@ -70,7 +70,7 @@ export const AppSidebar = ({ isAdmin }: AppSidebarProps) => {
     { path: "/admin/workouts", icon: Clipboard, label: "Fichas" },
     { path: "/admin/blocking", icon: Shield, label: "Bloqueios" },
     { path: "/admin/reports", icon: FileText, label: "Relatórios" },
-    { path: "/admin/attendance", icon: Calendar, label: "Presenças" },
+    { path: "/admin/attendance-records", icon: Calendar, label: "Presenças" },
     { path: "/profile", icon: UserCircle, label: "Meu Perfil" },
   ];
 
