@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Users, Search } from "lucide-react";
+import { ArrowLeft, Users, Search, Pencil, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -36,6 +36,8 @@ const AdminStudents = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
+  const [editingRA, setEditingRA] = useState<string | null>(null);
+  const [editRAValue, setEditRAValue] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -192,6 +194,47 @@ const AdminStudents = () => {
     return <Badge variant="outline">{labels[vinculo] || vinculo}</Badge>;
   };
 
+  const handleEditRA = (studentId: string, currentRA: string | null) => {
+    setEditingRA(studentId);
+    setEditRAValue(currentRA || "");
+  };
+
+  const handleSaveRA = async (studentId: string) => {
+    try {
+      const { error } = await supabase
+        .from("alunos")
+        .update({ ra: editRAValue || null })
+        .eq("id", studentId);
+
+      if (error) throw error;
+
+      setStudents(prev =>
+        prev.map(student =>
+          student.id === studentId ? { ...student, ra: editRAValue || null } : student
+        )
+      );
+
+      toast({
+        title: "RA atualizado!",
+        description: "O RA foi atualizado com sucesso.",
+      });
+
+      setEditingRA(null);
+      setEditRAValue("");
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o RA.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingRA(null);
+    setEditRAValue("");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -250,7 +293,7 @@ const AdminStudents = () => {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>CPF</TableHead>
-                    <TableHead>RA</TableHead>
+                    <TableHead className="w-[180px]">RA</TableHead>
                     <TableHead>Vínculo</TableHead>
                     <TableHead>Frequência</TableHead>
                     <TableHead>Status</TableHead>
@@ -264,13 +307,53 @@ const AdminStudents = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredStudents.map((student) => (
-                      <TableRow key={student.id}>
+                     filteredStudents.map((student) => (
+                      <TableRow key={student.id} className="group">
                         <TableCell className="font-medium">
                           {student.profiles.nome}
                         </TableCell>
                         <TableCell>{student.profiles.cpf}</TableCell>
-                        <TableCell>{student.ra || "-"}</TableCell>
+                        <TableCell>
+                          {editingRA === student.id ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={editRAValue}
+                                onChange={(e) => setEditRAValue(e.target.value)}
+                                className="w-32"
+                                placeholder="RA"
+                                autoFocus
+                              />
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                onClick={() => handleSaveRA(student.id)}
+                              >
+                                <Check className="h-4 w-4 text-green-500" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                onClick={handleCancelEdit}
+                              >
+                                <X className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span>{student.ra || "-"}</span>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => handleEditRA(student.id, student.ra)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell>{getVinculoBadge(student.tipo_vinculo)}</TableCell>
                         <TableCell>
                           {student.frequencia_total} / {student.frequencia_esperada}x semana
