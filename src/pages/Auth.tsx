@@ -88,6 +88,8 @@ const Auth = () => {
 
       // Create aluno entry after signup
       if (data.user) {
+        console.log("Creating aluno with RA:", ra, "tipo_vinculo:", tipoVinculo);
+        
         const { error: alunoError } = await supabase
           .from("alunos")
           .insert({
@@ -100,6 +102,13 @@ const Auth = () => {
 
         if (alunoError) {
           console.error("Error creating aluno:", alunoError);
+          toast({
+            title: "Erro ao criar registro de aluno",
+            description: alunoError.message,
+            variant: "destructive",
+          });
+        } else {
+          console.log("Aluno created successfully with RA:", ra);
         }
       }
 
