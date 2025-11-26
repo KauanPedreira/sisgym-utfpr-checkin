@@ -27,6 +27,27 @@ const AttendanceHistory = () => {
 
   useEffect(() => {
     checkAuthAndFetchData();
+    
+    // Set up realtime subscription for attendance updates
+    const channel = supabase
+      .channel('attendance-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'presencas'
+        },
+        () => {
+          // Refresh data when new attendance is registered
+          checkAuthAndFetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const checkAuthAndFetchData = async () => {
@@ -54,7 +75,7 @@ const AttendanceHistory = () => {
         .from("alunos")
         .select("frequencia_total, frequencia_esperada, status, bloqueado_ate")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (studentData) {
         // Calculate this month's attendance
@@ -65,16 +86,17 @@ const AttendanceHistory = () => {
                  attDate.getFullYear() === now.getFullYear();
         }).length;
 
-        // Get weeks in current month
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        const weeksInMonth = Math.ceil((lastDay.getDate() - firstDay.getDate() + 1) / 7);
+        // Calculate number of weeks passed in current month
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const daysPassed = now.getDate();
+        const weeksPassed = Math.ceil(daysPassed / 7);
         
-        const expectedMonthly = studentData.frequencia_esperada * weeksInMonth;
+        // Expected attendance is based on weeks passed, not total weeks in month
+        const expectedMonthly = studentData.frequencia_esperada * weeksPassed;
         const percentage = expectedMonthly > 0 ? (thisMonthAttendance / expectedMonthly) * 100 : 0;
 
         setStats({
-          total: studentData.frequencia_total || 0,
+          total: (attendanceData || []).length, // Total is all attendances, not just frequencia_total field
           thisMonth: thisMonthAttendance,
           expected: studentData.frequencia_esperada,
           percentage: Math.round(percentage),
