@@ -98,14 +98,16 @@ const AdminReports = () => {
           .select(`
             id,
             data_hora,
-            profiles:aluno_user_id (nome, cpf)
+            profiles:aluno_user_id (nome, cpf, email, curso, vinculo),
+            alunos:aluno_user_id (ra, status, tipo_vinculo)
           `)
           .order("data_hora", { ascending: false });
 
         if (data) {
           const transformedData = data.map((item: any) => ({
             ...item,
-            profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles
+            profiles: Array.isArray(item.profiles) ? item.profiles[0] : item.profiles,
+            alunos: Array.isArray(item.alunos) ? item.alunos[0] : item.alunos
           }));
           await generateAttendanceReport(transformedData);
         }
@@ -114,7 +116,7 @@ const AdminReports = () => {
           .from("alunos")
           .select(`
             *,
-            profiles!alunos_user_id_fkey (nome, cpf, telefone)
+            profiles!alunos_user_id_fkey (nome, cpf, telefone, email, curso, vinculo)
           `);
 
         if (data) {
@@ -130,14 +132,14 @@ const AdminReports = () => {
             .from("alunos")
             .select(`
               *,
-              profiles!alunos_user_id_fkey (nome, cpf, telefone)
+              profiles!alunos_user_id_fkey (nome, cpf, telefone, email, curso, vinculo)
             `),
           supabase
             .from("presencas")
             .select(`
               id,
               data_hora,
-              profiles:aluno_user_id (nome, cpf)
+              profiles:aluno_user_id (nome, cpf, email, curso, vinculo)
             `)
             .order("data_hora", { ascending: false }),
         ]);
@@ -159,14 +161,14 @@ const AdminReports = () => {
             .from("alunos")
             .select(`
               *,
-              profiles!alunos_user_id_fkey (nome, cpf, telefone)
+              profiles!alunos_user_id_fkey (nome, cpf, telefone, email, curso, vinculo)
             `),
           supabase
             .from("presencas")
             .select(`
               id,
               data_hora,
-              profiles:aluno_user_id (nome, cpf)
+              profiles:aluno_user_id (nome, cpf, email, curso, vinculo)
             `)
             .order("data_hora", { ascending: false }),
         ]);
