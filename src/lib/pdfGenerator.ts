@@ -29,6 +29,9 @@ interface StudentRecord {
     nome: string;
     cpf: string;
     telefone: string | null;
+    email: string | null;
+    curso: string | null;
+    vinculo: string | null;
   };
 }
 

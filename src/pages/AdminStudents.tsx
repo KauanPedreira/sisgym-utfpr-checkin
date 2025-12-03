@@ -28,6 +28,9 @@ interface Student {
     nome: string;
     cpf: string;
     telefone: string | null;
+    email: string | null;
+    curso: string | null;
+    vinculo: string | null;
   };
 }
 
@@ -65,7 +68,7 @@ const AdminStudents = () => {
               .from('alunos')
               .select(`
                 *,
-                profiles!alunos_user_id_fkey(nome, cpf, telefone)
+                profiles!alunos_user_id_fkey(nome, cpf, telefone, email, curso, vinculo)
               `)
               .eq('id', payload.new.id)
               .single();
@@ -83,7 +86,7 @@ const AdminStudents = () => {
               .from('alunos')
               .select(`
                 *,
-                profiles!alunos_user_id_fkey(nome, cpf, telefone)
+                profiles!alunos_user_id_fkey(nome, cpf, telefone, email, curso, vinculo)
               `)
               .eq('id', payload.new.id)
               .single();
@@ -148,7 +151,7 @@ const AdminStudents = () => {
         .from("alunos")
         .select(`
           *,
-          profiles!alunos_user_id_fkey(nome, cpf, telefone)
+          profiles!alunos_user_id_fkey(nome, cpf, telefone, email, curso, vinculo)
         `)
         .order("created_at", { ascending: false });
 
@@ -293,6 +296,8 @@ const AdminStudents = () => {
                   <TableRow>
                     <TableHead>Nome</TableHead>
                     <TableHead>CPF</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Curso</TableHead>
                     <TableHead className="w-[180px]">RA</TableHead>
                     <TableHead>Vínculo</TableHead>
                     <TableHead>Frequência</TableHead>
@@ -302,7 +307,7 @@ const AdminStudents = () => {
                 <TableBody>
                   {filteredStudents.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center text-muted-foreground">
                         Nenhum aluno encontrado
                       </TableCell>
                     </TableRow>
@@ -313,6 +318,8 @@ const AdminStudents = () => {
                           {student.profiles.nome}
                         </TableCell>
                         <TableCell>{student.profiles.cpf}</TableCell>
+                        <TableCell className="text-sm">{student.profiles.email || "-"}</TableCell>
+                        <TableCell className="text-sm">{student.profiles.curso || "-"}</TableCell>
                         <TableCell>
                           {editingRA === student.id ? (
                             <div className="flex items-center gap-2">
