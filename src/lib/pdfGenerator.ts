@@ -9,6 +9,7 @@ interface AttendanceRecord {
     cpf: string;
     email: string | null;
     curso: string | null;
+    vinculo: string | null;
   };
   alunos?: {
     ra: string | null;
@@ -101,16 +102,6 @@ export const generateAttendanceReport = async (attendances: AttendanceRecord[]) 
     yPos += 6;
   });
   
-  // Função para formatar vínculo
-  const formatVinculo = (vinculo: string | undefined) => {
-    const labels: Record<string, string> = {
-      aluno: "Aluno",
-      servidor: "Servidor",
-      externo: "Externo",
-    };
-    return labels[vinculo || ""] || vinculo || "N/A";
-  };
-
   // Tabela de presenças
   autoTable(doc, {
     startY: yPos + 5,
@@ -121,7 +112,7 @@ export const generateAttendanceReport = async (attendances: AttendanceRecord[]) 
       att.profiles.cpf,
       att.profiles.email || "N/A",
       att.profiles.curso || "N/A",
-      formatVinculo(att.alunos?.tipo_vinculo),
+      att.profiles.vinculo || "N/A",
       att.alunos?.status || "N/A",
     ]),
     styles: {
