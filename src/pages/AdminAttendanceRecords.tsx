@@ -28,10 +28,13 @@ interface AttendanceRecord {
   profiles: {
     nome: string;
     cpf: string;
+    email: string | null;
+    curso: string | null;
   };
   alunos: {
     ra: string | null;
     status: string;
+    tipo_vinculo: string;
   };
 }
 
@@ -73,8 +76,8 @@ const AdminAttendanceRecords = () => {
             .from('presencas')
             .select(`
               *,
-              profiles:aluno_user_id (nome, cpf),
-              alunos:aluno_user_id (ra, status)
+              profiles:aluno_user_id (nome, cpf, email, curso),
+              alunos:aluno_user_id (ra, status, tipo_vinculo)
             `)
             .eq('id', payload.new.id)
             .single();
@@ -141,8 +144,8 @@ const AdminAttendanceRecords = () => {
         .from("presencas")
         .select(`
           *,
-          profiles:aluno_user_id (nome, cpf),
-          alunos:aluno_user_id (ra, status)
+          profiles:aluno_user_id (nome, cpf, email, curso),
+          alunos:aluno_user_id (ra, status, tipo_vinculo)
         `)
         .order("data_hora", { ascending: false });
 
@@ -215,13 +218,25 @@ const AdminAttendanceRecords = () => {
     });
   };
 
+  const formatVinculo = (vinculo: string | undefined) => {
+    const labels: Record<string, string> = {
+      aluno: "Aluno",
+      servidor: "Servidor",
+      externo: "Externo",
+    };
+    return labels[vinculo || ""] || vinculo || "N/A";
+  };
+
   const exportToCSV = () => {
-    const headers = ["Data/Hora", "Nome", "CPF", "RA", "Status"];
+    const headers = ["Data/Hora", "Nome", "CPF", "Email", "Curso", "RA", "Vínculo", "Status"];
     const rows = filteredRecords.map((record) => [
       formatDateTime(record.data_hora),
       record.profiles?.nome || "N/A",
       record.profiles?.cpf || "N/A",
+      record.profiles?.email || "N/A",
+      record.profiles?.curso || "N/A",
       record.alunos?.ra || "N/A",
+      formatVinculo(record.alunos?.tipo_vinculo),
       record.alunos?.status || "N/A",
     ]);
 

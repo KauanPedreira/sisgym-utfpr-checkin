@@ -7,6 +7,13 @@ interface AttendanceRecord {
   profiles: {
     nome: string;
     cpf: string;
+    email: string | null;
+    curso: string | null;
+  };
+  alunos?: {
+    ra: string | null;
+    status: string;
+    tipo_vinculo: string;
   };
 }
 
@@ -94,18 +101,32 @@ export const generateAttendanceReport = async (attendances: AttendanceRecord[]) 
     yPos += 6;
   });
   
+  // Função para formatar vínculo
+  const formatVinculo = (vinculo: string | undefined) => {
+    const labels: Record<string, string> = {
+      aluno: "Aluno",
+      servidor: "Servidor",
+      externo: "Externo",
+    };
+    return labels[vinculo || ""] || vinculo || "N/A";
+  };
+
   // Tabela de presenças
   autoTable(doc, {
     startY: yPos + 5,
-    head: [["Data/Hora", "Nome", "CPF"]],
+    head: [["Data/Hora", "Nome", "CPF", "Email", "Curso", "Vínculo", "Status"]],
     body: attendances.map((att) => [
       new Date(att.data_hora).toLocaleString("pt-BR"),
       att.profiles.nome,
       att.profiles.cpf,
+      att.profiles.email || "N/A",
+      att.profiles.curso || "N/A",
+      formatVinculo(att.alunos?.tipo_vinculo),
+      att.alunos?.status || "N/A",
     ]),
     styles: {
-      fontSize: 9,
-      cellPadding: 3,
+      fontSize: 7,
+      cellPadding: 2,
     },
     headStyles: {
       fillColor: [255, 204, 0],
@@ -114,6 +135,15 @@ export const generateAttendanceReport = async (attendances: AttendanceRecord[]) 
     },
     alternateRowStyles: {
       fillColor: [245, 245, 245],
+    },
+    columnStyles: {
+      0: { cellWidth: 28 },
+      1: { cellWidth: 35 },
+      2: { cellWidth: 28 },
+      3: { cellWidth: 38 },
+      4: { cellWidth: 25 },
+      5: { cellWidth: 18 },
+      6: { cellWidth: 18 },
     },
   });
   
